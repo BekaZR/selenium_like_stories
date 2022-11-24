@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "selenium-like-stories"
+version = "0.1.0"
+description = ""
+authors = ["Beknazar Abdyldaev <abdyldaev.duff@gmail.com>"]
+readme = "README.md"
+packages = [{include = "selenium_like_stories"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+selenium = "^4.6.0"
+python-dotenv = "^0.21.0"
+bs4 = "^0.0.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
