@@ -11,6 +11,7 @@ python = "^3.10"
 selenium = "^4.6.0"
 python-dotenv = "^0.21.0"
 bs4 = "^0.0.1"
+lxml = "^4.9.1"
 
 
 [build-system]
