@@ -11,15 +11,23 @@ from bs4 import BeautifulSoup
 
 from firefoxdriver.services import get_url
 
+from fake_useragent import UserAgent
+
+useragent = UserAgent()
+
+options = webdriver.FirefoxOptions()
+
+options.add_argument(f'user-agent={useragent.ie}')
 class Bot:
     
     driver_path: str
+    
     url = "https://instagram.com/"
     
     def __init__(self, username, password):
         self._username = username
         self._password = password
-        self.driver = webdriver.Firefox(self.driver_path)
+        self.driver = webdriver.Firefox(executable_path=self.driver_path, options=options)
         
     
     def login(self):
@@ -34,6 +42,7 @@ class Bot:
     
     def get_profile(self, user):
         self.driver.get(user)
+        self.user = user
         sleep(2)
     
     
@@ -97,21 +106,64 @@ class Bot:
         except Exception:
             WebDriverWait(self.driver, 1).until(EC.element_to_be_clickable((By.XPATH, "/html/body/div[1]/div/div/div/div[1]/div/div/div/div[1]/div[1]/section/div[1]/div/section/div/div[3]/div/div/span/button"))).click()
         print('\n', "we check stories url")
-    #     self.check_stories_url()
+        self.stories_url = self.driver.current_url
+        
+        self.check_stories_url()
 
 
-    # def check_stories_url(self):
-    #     sleep(1)
-    #     self.now_url = self.driver.current_url
-    #     print('\n', "now url ", self.now_url)
+    def check_stories_url(self):
         
-    #     if self.now_url is not self.driver:
-    #         return self.like_stories()
+        print('\n', "now url ", self.stories_url)
         
-    #     if 'stories' not in self.driver.current_url:
-    #         return ''
+        print(f'{self.stories_url == self.driver.current_url}')
         
-    #     self.check_stories_url()
+        sleep(2)
+        
+        if str(self.stories_url) == str(self.driver.current_url):
+            self.check_stories_url()
+            print(f'{self.stories_url} ---- {self.driver.current_url}')
+
+        self.stories_url = self.driver.current_url
+        
+        if 'stories' not in str(self.driver.current_url):
+            return ''
+        
+        return self.like_stories()
+    
+    
+    def get_all_post(self):
+    
+        scroll_box = WebDriverWait(
+        self.driver, 2).until(EC.presence_of_element_located(
+            (By.XPATH, "/html")
+            )
+        )
+        
+        # Scroll till Followers list is there
+        last_ht, ht = 0, 1
+        while last_ht != ht:
+            last_ht = ht
+            sleep(2)
+            # scroll down and retrun the height of scroll (JS script)
+            ht = self.driver.execute_script(""" 
+            arguments[0].scrollTo(0, arguments[0].scrollHeight);
+            return arguments[0].scrollHeight; """, scroll_box
+            )
+        
+        WebDriverWait(
+            self.driver, 10).until(EC.presence_of_element_located(
+                (By.XPATH, "/html/body/div[1]/div/div/div/div[1]/div/div/div/div[1]/div[2]/div[2]/section/main/div/div[3]")
+                )
+            )
+        
+        posts = WebDriverWait(
+            self.driver, 10).until(EC.presence_of_all_elements_located(
+                (By.TAG_NAME, "a")
+                )
+            )
+        
+        names = [post.text for post in posts if post.text != '']
+        print(names)
 
 
     # def next_stories(self):
