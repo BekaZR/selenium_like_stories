@@ -1,0 +1,5 @@
+selenium
+python-dotenv
+bs4
+lxml
+fake-useragent

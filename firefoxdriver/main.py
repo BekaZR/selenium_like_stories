@@ -9,27 +9,32 @@ import sys
 
 from bs4 import BeautifulSoup
 
-from firefoxdriver.services import get_url
-
 from fake_useragent import UserAgent
+
+from firefoxdriver.services import BotClicButton, BotParseBs4, BotScroll, BotValidator, BotSearchElement
 
 useragent = UserAgent()
 
 options = webdriver.FirefoxOptions()
 
 options.add_argument(f'user-agent={useragent.ie}')
-class Bot:
+
+
+class Bot(BotScroll, BotParseBs4, BotClicButton, BotValidator, BotSearchElement):
+    
+    users = []
     
     driver_path: str
     
-    url = "https://instagram.com/"
+    url = "https://instagram.com"
     
     def __init__(self, username, password):
         self._username = username
         self._password = password
         self.driver = webdriver.Firefox(executable_path=self.driver_path, options=options)
         
-    
+
+
     def login(self):
         self.driver.maximize_window() # For maximizing window
         self.driver.implicitly_wait(20)
@@ -39,145 +44,105 @@ class Bot:
         WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//input[@name=\"password\"]"))).send_keys(self._password)
         WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//button[@type=\"submit\"]"))).click()
         sleep(10)
-    
-    def get_profile(self, user):
-        self.driver.get(user)
-        self.user = user
-        sleep(2)
-    
-    
-    def get_subscribers(self):
-        WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable((By.XPATH, "/html/body/div[1]/div/div/div/div[1]/div/div/div/div[1]/div[2]/div[2]/section/main/div/header/section/ul/li[2]/a/div"))).click()
-    
 
-    def get_people_list(self):
-        scroll_box = WebDriverWait(
-            self.driver, 2).until(EC.presence_of_element_located(
-                (By.XPATH, "/html/body/div[1]/div/div/div/div[2]/div/div/div[1]/div/div[2]/div/div/div/div/div[2]/div/div/div[2]")
-                )
-            )
-        
-        # Scroll till Followers list is there
-        last_ht, ht = 0, 1
-        while last_ht != ht:
-            last_ht = ht
+
+    def get_user_profile(self, user_link):
+        self.driver.get(self.url + "/" + user_link)
+        self.user = self.driver.current_url
+        sleep(2)
+
+
+    def get_user_subscribers(self):
+        WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable((By.XPATH, "/html/body/div[1]/div/div/div/div[1]/div/div/div/div[1]/section/main/div/header/section/ul/li[2]/a/div"))).click()
+        try:
+            self.get_people_list_with_story()
+        except Exception as e:
+            pass
+
+
+    def get_people_list_with_story(self):
+        self.scroll_slider_down("/html/body/div[1]/div/div/div/div[2]/div/div/div[1]/div/div[2]/div/div/div/div/div[2]/div/div/div[2]")
+        div_list_with_stories = self.parse_html_elements(tag="div", class_name="_aarf _aarg")
+        self.get_profile_subscribers(usernames=self.get_names_from_html_elements(html_elements=div_list_with_stories), xpath="/html/body/div[1]/div/div/div/div[1]/div/div/div/div[1]/section/main/div/header/div/div")
+
+
+    def get_profile_subscribers(self, usernames, xpath):
+        for username in usernames:
             sleep(2)
-            # scroll down and retrun the height of scroll (JS script)
-            ht = self.driver.execute_script(""" 
-            arguments[0].scrollTo(0, arguments[0].scrollHeight);
-            return arguments[0].scrollHeight; """, scroll_box
-            )
-        
-        
-        soup = BeautifulSoup(self.driver.page_source, 'lxml')
-        div_list_with_stories = soup.find_all('div', class_="_aarf _aarg")
-        
-        usernames = []
-        for div_with_stories in div_list_with_stories:
+            
+            self.get_user_profile(user_link=username)
+            sleep(3)
+            
             try:
-                usernames.append((div_with_stories.find('img')['alt']).split()[-1])
+                self.click_user_stories(xpath=xpath)
             except Exception:
                 continue
-        print('\n'*2, f'all users --- {usernames}')
-        self.profile_subscribers(usernames=usernames)
-
-
-    def profile_subscribers(self, usernames):
-        for username in usernames:
-            print('\n'*2, f'now we working with --- {username}')
-            self.driver.get(self.url + username)
-            print('\n'*2, f'url to user --- {self.url}{username}')
-            sleep(5)
-            WebDriverWait(
-            self.driver, 2).until(EC.presence_of_element_located(
-                (By.XPATH, "/html/body/div[1]/div/div/div/div[1]/div/div/div/div[1]/div[2]/div[2]/section/main/div/header/div/div")
-                )
-            ).click()
-            print('\n'*2, f'we click to --- {self.url}{username}')
-            self.like_stories()
+            sleep(2)
             
+            try:
+                self.like_stories()
+            except Exception as e:
+                continue
+
 
     def like_stories(self):
-        print('\n'*2, f'we starting like stories')
         try:
-            WebDriverWait(self.driver, 1).until(EC.element_to_be_clickable((By.XPATH, "/html/body/div[1]/div/div/div/div[1]/div/div/div/div[1]/div[1]/section/div[1]/div/section/div/div[3]/div/div/div[2]/span/button"))).click()
-        except TimeoutException:
-            WebDriverWait(self.driver, 1).until(EC.element_to_be_clickable((By.XPATH, "/html/body/div[1]/div/div/div/div[1]/div/div/div/div[1]/div[1]/section/div[1]/div/div[5]/section/div/div[3]/div/div/div[2]/span/button"))).click()
-        except Exception:
-            WebDriverWait(self.driver, 1).until(EC.element_to_be_clickable((By.XPATH, "/html/body/div[1]/div/div/div/div[1]/div/div/div/div[1]/div[1]/section/div[1]/div/section/div/div[3]/div/div/span/button"))).click()
-        print('\n', "we check stories url")
+            self.like()
+        except Exception as e:
+            return " "
+        
         self.stories_url = self.driver.current_url
         
         self.check_stories_url()
 
 
-    def check_stories_url(self):
-        
-        print('\n', "now url ", self.stories_url)
-        
-        print(f'{self.stories_url == self.driver.current_url}')
-        
-        sleep(2)
-        
-        if str(self.stories_url) == str(self.driver.current_url):
-            self.check_stories_url()
-            print(f'{self.stories_url} ---- {self.driver.current_url}')
 
-        self.stories_url = self.driver.current_url
-        
-        if 'stories' not in str(self.driver.current_url):
-            return ''
-        
-        return self.like_stories()
-    
-    
     def get_all_post(self):
-    
-        scroll_box = WebDriverWait(
-        self.driver, 2).until(EC.presence_of_element_located(
-            (By.XPATH, "/html")
-            )
-        )
+        self.scroll_slider_down(path="/html")
         
-        # Scroll till Followers list is there
-        last_ht, ht = 0, 1
-        while last_ht != ht:
-            last_ht = ht
+        # self.search_element()
+        
+        div_post = self.parse_html_element(tag="article", class_name="x1iyjqo2")
+        
+        all_href = div_post.find_all("a")
+        
+        posts = []
+        
+        for value in all_href:
+            posts.append(value['href'])
+        try:
+            self.get_all_post_liked_users(posts=posts[1:-1])
+        except Exception:
+            pass
+
+
+    def get_all_post_liked_users(self, posts):
+        href_list = []
+        
+        for post in posts:
+            self.driver.get(self.url + post)
+            
             sleep(2)
-            # scroll down and retrun the height of scroll (JS script)
-            ht = self.driver.execute_script(""" 
-            arguments[0].scrollTo(0, arguments[0].scrollHeight);
-            return arguments[0].scrollHeight; """, scroll_box
-            )
+            WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.XPATH, "/html/body/div[1]/div/div/div/div[1]/div/div/div/div[1]/section/main/div[1]/div[1]/article/div/div[2]/div/div[2]/section[2]/div/div/div/a[2]"))).click()
+            sleep(3)
+            
+            self.scroll_slider_down(path="/html/body/div[1]/div/div/div/div[2]/div/div/div[1]/div/div[2]/div/div/div/div/div[2]/div/div[3]/div")
+            
+            div_list_with_stories = self.parse_html_elements(tag="div", class_name="_aarf")
+            usernames = self.get_names_from_html_elements(html_elements=div_list_with_stories)
+            self.users += usernames
+        self.get_profile_subscribers(usernames=set(self.users), xpath="/html/body/div[1]/div/div/div/div[1]/div/div/div/div[1]/section/main/div/header/div/div")
+            
         
-        WebDriverWait(
-            self.driver, 10).until(EC.presence_of_element_located(
-                (By.XPATH, "/html/body/div[1]/div/div/div/div[1]/div/div/div/div[1]/div[2]/div[2]/section/main/div/div[3]")
-                )
-            )
+    #     links = self.get_value_from_html_elements(html_elements=href_list)
         
-        posts = WebDriverWait(
-            self.driver, 10).until(EC.presence_of_all_elements_located(
-                (By.TAG_NAME, "a")
-                )
-            )
         
-        names = [post.text for post in posts if post.text != '']
-        print(names)
 
+    # def get_from_link_users_link(self, links):
+    #     for link in links:
+    #         self.driver.get(self.url + link)
+    #         sleep(3)
 
-    # def next_stories(self):
-    #         WebDriverWait(
-    #         self.driver, 2).until(EC.presence_of_element_located(
-    #             (By.XPATH, "/html/body/div[1]/div/div/div/div[1]/div/div/div/div[1]/div[1]/section/div[1]/div/section/div/button")
-    #             )
-    #         ).click()
-    #         sleep(5)
-
-# /html/body/div[1]/div/div/div/div[1]/div/div/div/div[1]/div[1]/section/div[1]/div/section/div/div[3]/div/div/span/button
-
-
-# /html/body/div[1]/div/div/div/div[1]/div/div/div/div[1]/div[1]/section/div[1]/div/section/div/div[3]/div/div/div[2]/span/button
-
-
-# /html/body/div[1]/div/div/div/div[1]/div/div/div/div[1]/div[1]/section/div[1]/div/div[5]/section/div/div[3]/div/div/div[2]/span/button
+# /html/body/div[1]/div/div/div/div[1]/div/div/div/div[1]/section/main/div/header/div/div
+# /html/body/div[1]/div/div/div/div[1]/div/div/div/div[1]/section/main/div/header/div/div
+# /html/body/div[1]/div/div/div/div[1]/div/div/div/div[1]/div[2]/div[2]/section/main/div/header/div/div

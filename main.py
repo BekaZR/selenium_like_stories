@@ -6,8 +6,7 @@ if __name__ == "__main__":
     Bot.driver_path = PATH_FIRE_FOX
     bot = Bot(username=USERNAME, password=PASSWORD)
     bot.login()
-    # bot.get_profile("https://www.instagram.com/didarmatiyev/?next=%2F")
-    # bot.get_subscribers()
-    # bot.get_people_list()
-    bot.get_profile("https://www.instagram.com/devlet_durdi/")
+    bot.get_user_profile("timurkhan.97/")
+    bot.get_user_subscribers()
+    bot.get_user_profile("timurkhan.97/")
     bot.get_all_post()
