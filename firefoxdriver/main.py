@@ -32,7 +32,6 @@ class Bot(BotScroll, BotParseBs4, BotClicButton, BotValidator, BotSearchElement)
         self._username = username
         self._password = password
         self.driver = webdriver.Firefox(executable_path=self.driver_path, options=options)
-        
 
 
     def login(self):
@@ -53,7 +52,7 @@ class Bot(BotScroll, BotParseBs4, BotClicButton, BotValidator, BotSearchElement)
 
 
     def get_user_subscribers(self):
-        WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable((By.XPATH, "/html/body/div[1]/div/div/div/div[1]/div/div/div/div[1]/section/main/div/header/section/ul/li[2]/a/div"))).click()
+        self.driver.get(self.driver.current_url + "followers/")
         try:
             self.get_people_list_with_story()
         except Exception as e:
@@ -61,9 +60,9 @@ class Bot(BotScroll, BotParseBs4, BotClicButton, BotValidator, BotSearchElement)
 
 
     def get_people_list_with_story(self):
-        self.scroll_slider_down("/html/body/div[1]/div/div/div/div[2]/div/div/div[1]/div/div[2]/div/div/div/div/div[2]/div/div/div[2]")
+        self.scroll_slider_down("/html/body/div[2]/div/div/div/div[2]/div/div/div[1]/div/div[2]/div/div/div/div/div[2]/div/div/div[2]")
         div_list_with_stories = self.parse_html_elements(tag="div", class_name="_aarf _aarg")
-        self.get_profile_subscribers(usernames=self.get_names_from_html_elements(html_elements=div_list_with_stories), xpath="/html/body/div[1]/div/div/div/div[1]/div/div/div/div[1]/section/main/div/header/div/div")
+        self.get_profile_subscribers(usernames=self.get_names_from_html_elements(html_elements=div_list_with_stories), xpath="/html/body/div[2]/div/div/div/div[1]/div/div/div/div[1]/div[1]/div[2]/section/main/div/header/div/div")
 
 
     def get_profile_subscribers(self, usernames, xpath):
@@ -94,7 +93,6 @@ class Bot(BotScroll, BotParseBs4, BotClicButton, BotValidator, BotSearchElement)
         self.stories_url = self.driver.current_url
         
         self.check_stories_url()
-
 
 
     def get_all_post(self):
@@ -132,17 +130,3 @@ class Bot(BotScroll, BotParseBs4, BotClicButton, BotValidator, BotSearchElement)
             usernames = self.get_names_from_html_elements(html_elements=div_list_with_stories)
             self.users += usernames
         self.get_profile_subscribers(usernames=set(self.users), xpath="/html/body/div[1]/div/div/div/div[1]/div/div/div/div[1]/section/main/div/header/div/div")
-            
-        
-    #     links = self.get_value_from_html_elements(html_elements=href_list)
-        
-        
-
-    # def get_from_link_users_link(self, links):
-    #     for link in links:
-    #         self.driver.get(self.url + link)
-    #         sleep(3)
-
-# /html/body/div[1]/div/div/div/div[1]/div/div/div/div[1]/section/main/div/header/div/div
-# /html/body/div[1]/div/div/div/div[1]/div/div/div/div[1]/section/main/div/header/div/div
-# /html/body/div[1]/div/div/div/div[1]/div/div/div/div[1]/div[2]/div[2]/section/main/div/header/div/div

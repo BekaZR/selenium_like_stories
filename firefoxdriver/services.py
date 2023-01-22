@@ -67,30 +67,9 @@ class BotClicButton:
     def like(self):
         
         # like_1 = WebDriverWait(self.driver, 1).until(EC.element_to_be_clickable((By.XPATH, "/html/body/div[1]/div/div/div/div[1]/div/div/div/div[1]/div[1]/section/div[1]/div/section/div/div[3]/div/div/div[2]/span/button")))
-        like_1 = self.driver.find_element(By.XPATH, "/html/body/div[1]/div/div/div/div[1]/div/div/div/div[1]/div[1]/section/div[1]/div/section/div/div[3]/div/div/div[2]/span/button")
+        like_1 = self.driver.find_element(By.XPATH, "/html/body/div[2]/div/div/div/div[1]/div/div/div/div[1]/div[1]/section/div[1]/div/section/div/div[3]/div/div/div[2]/span/button")
         
         like_1.click()
-    
-
-    def like_version_2(self):
-        try:
-            # like_2 = WebDriverWait(self.driver, 1).until(EC.element_to_be_clickable((By.XPATH, "/html/body/div[1]/div/div/div/div[1]/div/div/div/div[1]/div[1]/section/div[1]/div/div[5]/section/div/div[3]/div/div/div[2]/span/button")))
-            
-            like_2 = self.driver.find_element(By.XPATH, "/html/body/div[1]/div/div/div/div[1]/div/div/div/div[1]/div[1]/section/div[1]/div/div[5]/section/div/div[3]/div/div/div[2]/span/button")
-            
-            like_2.click()
-        except NoSuchElementException:
-            self.like_version_3()
-    
-    def like_version_3(self):
-        try:
-            # like_3 = WebDriverWait(self.driver, 1).until(EC.element_to_be_clickable((By.XPATH, "/html/body/div[1]/div/div/div/div[1]/div/div/div/div[1]/div[1]/section/div[1]/div/section/div/div[3]/div/div/span/button")))
-            
-            like_3 = self.driver.find_element(By.XPATH, "/html/body/div[1]/div/div/div/div[1]/div/div/div/div[1]/div[1]/section/div[1]/div/section/div/div[3]/div/div/span/button")
-            like_3.click()
-        except Exception as e:
-            raise e
-
 
 class BotValidator:
     def check_stories_url(self):
